@@ -9,10 +9,12 @@ public class PlayerUseCase : MonoBehaviour
     private DataRepository _repository;
     private PlayerModel _model;
     public UnityAction<PlayerModel> ChangeModel;
+    private Rigidbody rb;
     public void Initialize(DataRepository repository)
     {
         _repository = repository;
         _model = new PlayerModel();
+        rb = GetComponent<Rigidbody>();
     }
     public void SyncModel()
     {
@@ -29,6 +31,15 @@ public class PlayerUseCase : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //移動量の取得
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
+
+        //ベクトルに変換する
+        Vector3 movement = new Vector3(horizontalInput,0.0f,verticalInput);
+        //移動ベクトルを正規化する
+        movement = movement.normalized;
+        //キャラの移動をする
+        rb.velocity = movement * _model.Speed;
     }
 }
