@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerPresenter : GamePresenterManager
+public class PlayerPresenter : GamePresenter
 {
     [SerializeField] private PlayerUseCase _useCase;
     [SerializeField] private PlayerView _view;

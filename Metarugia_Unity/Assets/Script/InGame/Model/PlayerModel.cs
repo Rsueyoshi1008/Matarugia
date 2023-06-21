@@ -9,6 +9,7 @@ namespace InGame.Model.Player
         public int Attack;
         public int Defense;
         public int HP;
+        public float JumpPower;
 
         public PlayerModel()
         {
@@ -16,6 +17,7 @@ namespace InGame.Model.Player
             Attack = 0;
             Defense = 0;
             HP = 0;
+            JumpPower = 0;
         }
     }
 }

@@ -9,13 +9,15 @@ namespace Datas.Entity.Player
         public int Attack;
         public int Defense;
         public int HP;
+        public float JumpPower;
 
-        public PlayerEntity(float speed, int attack, int defense, int hp)
+        public PlayerEntity(float speed, int attack, int defense, int hp, float jumpPower)
         {
             Speed = speed;
             Attack = attack;
             Defense = defense;
             HP = hp;
+            JumpPower = jumpPower;
         }
     }
 }
