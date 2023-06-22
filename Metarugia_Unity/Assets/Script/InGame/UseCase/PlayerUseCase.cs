@@ -14,13 +14,14 @@ public class PlayerUseCase : MonoBehaviour
     private Rigidbody rb;
     private float rotationSpeed = 0.1f;
     private float _groundDistance = 0.1f;// 地面との判定距離
-    //private float _jumpingDistance = 0.1f;// 飛んでる最中の衝突判定距離
+    
     private bool _isGrounded, _isJumped, _isJumping;
     public void Initialize(DataRepository repository)
     {
         _repository = repository;
         _model = new PlayerModel();
         rb = GetComponent<Rigidbody>();
+        
     }
     public void SyncModel()
     {
@@ -73,7 +74,7 @@ public class PlayerUseCase : MonoBehaviour
         {
             horizontalInput = -1.0f;
         }
-        Debug.Log(_isGrounded);
+        
         if(Input.GetKeyDown(KeyCode.Space) && _isGrounded)//ジャンプ処理
         {
             Jump();
@@ -86,6 +87,7 @@ public class PlayerUseCase : MonoBehaviour
             
             if(_isJumped && _isJumping)//   ジャンプ中にオブジェクトに当たったら移動できなくなる
             {
+                Debug.Log("return");
                 return;
             }
             else
@@ -107,19 +109,30 @@ public class PlayerUseCase : MonoBehaviour
         movement = movement.normalized;
         // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
         rb.velocity = movement * _model.Speed + new Vector3(0, rb.velocity.y, 0);
+        // カメラの水平回転に基づいてキャラクターを回転させる
+        Quaternion targetRotation = Quaternion.Euler(0, Camera.main.transform.eulerAngles.y, 0);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        
         // 入力方向に回転する
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
+        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
     }
     public void Jump()
     {
         rb.AddForce(Vector3.up * _model.JumpPower, ForceMode.Impulse);
     }
 
-    private void OnCollisionEnter(Collision collision)
-{
-    if (collision.gameObject.CompareTag("Stairs"))
+    private void OnCollisionEnter(Collision collision)//当たった瞬間
     {
-        _isJumped = true;
+        if (collision.gameObject.CompareTag("Stairs"))
+        {
+            _isJumped = true;
+        }
     }
-}
+    private void OnCollisionExit(Collision collision)//離れた瞬間
+    {
+        if (collision.gameObject.CompareTag("Stairs"))
+        {
+            _isJumped = false;
+        }
+    }
 }
