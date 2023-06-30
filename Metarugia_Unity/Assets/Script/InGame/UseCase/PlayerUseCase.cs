@@ -81,13 +81,13 @@ public class PlayerUseCase : MonoBehaviour
         }
         
         
-        
+        Debug.Log(verticalInput + horizontalInput);
         if(verticalInput != 0.0f || horizontalInput != 0.0f)//呼び続けるとLookRotation(movement)がゼロのログが出続けるから押したときに呼び出す
         {
             
             if(_isJumped && _isJumping)//   ジャンプ中にオブジェクトに当たったら移動できなくなる
             {
-                Debug.Log("return");
+                
                 return;
             }
             else
@@ -109,12 +109,9 @@ public class PlayerUseCase : MonoBehaviour
         movement = movement.normalized;
         // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
         rb.velocity = movement * _model.Speed + new Vector3(0, rb.velocity.y, 0);
-        // カメラの水平回転に基づいてキャラクターを回転させる
-        Quaternion targetRotation = Quaternion.Euler(0, Camera.main.transform.eulerAngles.y, 0);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         
         // 入力方向に回転する
-        //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
     }
     public void Jump()
     {
