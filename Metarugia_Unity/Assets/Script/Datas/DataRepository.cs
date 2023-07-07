@@ -16,7 +16,7 @@ namespace Datas.DataRepository
         /** 初期化 */
         public PlayerEntity InitializePlayer()
         {
-            var player = new PlayerEntity(5f,5,5,5,8f);
+            var player = new PlayerEntity(5f,8f,5,5,5,8f);
     
             return player;
         }
