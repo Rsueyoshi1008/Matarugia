@@ -16,13 +16,13 @@ public class StairsGeneration : MonoBehaviour
         //螺旋階段の生成
         for(var i = 0; i < numberOfGeneration; i++)
         {
-            float angle = i * (2f * Mathf.PI / numberOfGeneration);
+            float angle = i * (transform.rotation.y + 2f * Mathf.PI / numberOfGeneration);
             float x = Mathf.Cos(angle) * radius - 1f;
             float y = i * height / numberOfGeneration + 0.5f;
             float z = Mathf.Sin(angle) * radius;
 
             Vector3 position = new Vector3(x, y, z);
-            Quaternion rotation = Quaternion.Euler(0f, angle * Mathf.Rad2Deg, 0f);
+            Quaternion rotation = Quaternion.Euler(0f, angle * Mathf.Rad2Deg + 10f, 0f);
 
             GameObject spawnedObject = Instantiate(stairs, position, rotation);
             spawnedObject.transform.parent = transform;

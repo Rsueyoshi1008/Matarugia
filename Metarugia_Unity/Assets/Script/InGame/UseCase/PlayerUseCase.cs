@@ -24,13 +24,15 @@ public class PlayerUseCase : MonoBehaviour
 
     private bool _isSprint = false;
     
-    private bool _isGrounded, _isJumped, _isJumping;
+    private bool _isGrounded, _isJumpedHit, _isJumping;//   地面接触判定、ジャンプ中の判定、ジャンプ判定
+    private Vector3 spawnPosition;//    スポーンする初期位置
+    private float spawnCount = 0;//     オブジェクトに引っかかった時のリスポーンカウント
     public void Initialize(DataRepository repository)
     {
         _repository = repository;
         _model = new PlayerModel();
         rb = GetComponent<Rigidbody>();
-        
+        spawnPosition = transform.position;
     }
     public void SyncModel()
     {
@@ -112,20 +114,39 @@ public class PlayerUseCase : MonoBehaviour
         //Debug.Log(verticalInput + horizontalInput);
         if(verticalInput != 0.0f || horizontalInput != 0.0f)//呼び続けるとLookRotation(movement)がゼロのログが出続けるから押したときに呼び出す
         {
-            
-            if(_isJumped && !_isGrounded)//   ジャンプ中にオブジェクトに当たったら移動できなくなる
+            if(_isGrounded)//   地面についたときにリスポーンカウントリセット
+            {
+                spawnCount = 0.0f;
+            }
+            if(_isJumpedHit && !_isGrounded)//   空中でオブジェクトに当たったら移動不可
             {
                 _animator.SetFloat("Speed", 0.0f, dampTime: 0.1f, Time.deltaTime);
-                rb.velocity = new Vector3 (0f,0f,0f);
-                return;
+                spawnCount += Time.deltaTime;//  時間測定
+                Debug.Log(spawnCount);
+                if(spawnCount >= 5f)
+                {
+                    ReSpawn();
+                }
+
             }
             else
             {
-                Move(verticalInput,horizontalInput);
+                if(Input.GetKey(KeyCode.LeftShift))
+                {
+                    ShiftAccelerate(verticalInput,horizontalInput);//   ダッシュ
+                }
+                else
+                Move(verticalInput,horizontalInput);//  歩き
             }
             
+            
         }
-        
+        else if(_isGrounded)//  入力がない時すぐに止まる
+        {
+            rb.velocity = new Vector3 (0f,0f,0f);
+        }
+        // Debug.Log(_isJumpedHit);
+        // Debug.Log(_isGrounded);
         
     }
     public void Move(float verticalInput, float horizontalInput)
@@ -148,23 +169,49 @@ public class PlayerUseCase : MonoBehaviour
         // 入力方向に回転する
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
     }
+
+    public void ShiftAccelerate(float verticalInput, float horizontalInput)
+    {
+        // カメラの方向から、X-Z平面の単位ベクトルを取得
+        Vector3 cameraForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
+        
+        // 方向キーの入力値とカメラの向きから、移動方向を決定
+        Vector3 movement = cameraForward * verticalInput + Camera.main.transform.right * horizontalInput;
+
+        //移動ベクトルを正規化する
+        movement = movement.normalized;
+
+        // 移動方向にスピードを掛ける。ジャンプや落下がある場合は、別途Y軸方向の速度ベクトルを足す。
+        rb.velocity = movement * _model.SprintSpeed + new Vector3(0, rb.velocity.y, 0);
+
+        //アニメーション
+        _animator.SetFloat("Speed", _isSprint ? 2.0f : 0.7f, dampTime: 0.1f, Time.deltaTime);
+        
+        // 入力方向に回転する
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(movement), rotationSpeed);
+    }
     public void Jump()
     {
         rb.AddForce(Vector3.up * _model.JumpPower, ForceMode.Impulse);
+    }
+
+    public void ReSpawn()
+    {
+        transform.position = spawnPosition;
     }
 
     private void OnCollisionEnter(Collision collision)//当たった瞬間
     {
         if (collision.gameObject.CompareTag("Stairs"))
         {
-            _isJumped = true;
+            _isJumpedHit = true;
         }
     }
     private void OnCollisionExit(Collision collision)//離れた瞬間
     {
         if (collision.gameObject.CompareTag("Stairs"))
         {
-            _isJumped = false;
+            _isJumpedHit = false;
         }
     }
 }
